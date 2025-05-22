@@ -21,7 +21,7 @@ export default function HomePage() {
     try {
       setCurrentMetadata(metadata);
       
-      const redirectUrl = `${window.location.origin}/u?=${encodeURIComponent(metadata.url)}`;
+      const redirectUrl = `${window.location.origin}/u?u=${encodeURIComponent(metadata.url)}&title=${encodeURIComponent(metadata.title)}&des=${encodeURIComponent(metadata.description)}`;
       const newRedirect: RecentRedirect = {
         originalUrl: metadata.url,
         redirectUrl,
@@ -35,6 +35,27 @@ export default function HomePage() {
     }
   };
 
+  const handleMetadataUpdate = (updates: Partial<UrlMetadata>) => {
+    if (!currentMetadata) return;
+
+    const updatedMetadata = { ...currentMetadata, ...updates };
+    setCurrentMetadata(updatedMetadata);
+
+    // Update the recent redirects list with the new metadata
+    setRecentRedirects((prev) => {
+      const index = prev.findIndex(r => r.originalUrl === currentMetadata.url);
+      if (index === -1) return prev;
+
+      const newRedirects = [...prev];
+      newRedirects[index] = {
+        ...newRedirects[index],
+        metadata: updatedMetadata,
+        redirectUrl: `${window.location.origin}/u?u=${encodeURIComponent(updatedMetadata.url)}&title=${encodeURIComponent(updates.customTitle || updatedMetadata.title)}&des=${encodeURIComponent(updates.customDescription || updatedMetadata.description)}`,
+      };
+      return newRedirects;
+    });
+  };
+
   const existingUrls = recentRedirects.map(redirect => redirect.originalUrl);
 
   return (
@@ -43,7 +64,7 @@ export default function HomePage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">URL Redirect Generator</h1>
           <p className="text-lg text-gray-600">
-            Generate shareable redirect links with rich previews
+            Generate shareable redirect links with customizable previews
           </p>
         </div>
 
@@ -52,7 +73,12 @@ export default function HomePage() {
           isLoading={isLoading}
           existingUrls={existingUrls}
         />
-        {currentMetadata && <UrlPreview metadata={currentMetadata} />}
+        {currentMetadata && (
+          <UrlPreview 
+            metadata={currentMetadata} 
+            onMetadataUpdate={handleMetadataUpdate}
+          />
+        )}
         <RecentRedirects redirects={recentRedirects} />
       </div>
     </div>

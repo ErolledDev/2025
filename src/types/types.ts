@@ -4,6 +4,8 @@ export interface UrlMetadata {
   image: string;
   url: string;
   timestamp: number;
+  customTitle?: string;
+  customDescription?: string;
 }
 
 export interface RecentRedirect {

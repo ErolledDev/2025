@@ -14,7 +14,9 @@ export default function RedirectPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const targetUrl = params.get('');
+    const targetUrl = params.get('u');
+    const customTitle = params.get('title');
+    const customDescription = params.get('des');
 
     if (!targetUrl) {
       navigate('/');
@@ -27,10 +29,20 @@ export default function RedirectPage() {
           ...data,
           url: targetUrl,
           timestamp: Date.now(),
+          title: customTitle || data.title,
+          description: customDescription || data.description,
         });
       })
       .catch(() => {
         setError('Failed to load preview. You can still proceed to the destination.');
+        // Still set basic metadata even if scraping fails
+        setMetadata({
+          title: customTitle || 'Visit Website',
+          description: customDescription || 'No description available',
+          image: '',
+          url: targetUrl,
+          timestamp: Date.now(),
+        });
       });
 
     const duration = 3000;
