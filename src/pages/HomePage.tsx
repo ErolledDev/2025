@@ -41,7 +41,6 @@ export default function HomePage() {
     const updatedMetadata = { ...currentMetadata, ...updates };
     setCurrentMetadata(updatedMetadata);
 
-    // Update the recent redirects list with the new metadata
     setRecentRedirects((prev) => {
       const index = prev.findIndex(r => r.originalUrl === currentMetadata.url);
       if (index === -1) return prev;
@@ -54,6 +53,10 @@ export default function HomePage() {
       };
       return newRedirects;
     });
+  };
+
+  const handleDelete = (timestamp: number) => {
+    setRecentRedirects((prev) => prev.filter((redirect) => redirect.timestamp !== timestamp));
   };
 
   const existingUrls = recentRedirects.map(redirect => redirect.originalUrl);
@@ -79,7 +82,10 @@ export default function HomePage() {
             onMetadataUpdate={handleMetadataUpdate}
           />
         )}
-        <RecentRedirects redirects={recentRedirects} />
+        <RecentRedirects 
+          redirects={recentRedirects}
+          onDelete={handleDelete}
+        />
       </div>
     </div>
   );

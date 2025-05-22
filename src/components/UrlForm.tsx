@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, AlertCircle, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { scrapeMetadata } from '../services/scrapeService';
 import type { UrlMetadata } from '../types/types';
 
@@ -20,7 +21,6 @@ export default function UrlForm({ onMetadataFetch, isLoading, existingUrls }: Ur
     e.preventDefault();
     if (!url) return;
 
-    // Check if URL already exists
     if (existingUrls.includes(url)) {
       setError('This URL has already been generated. Please check your recent redirects.');
       return;
@@ -29,7 +29,6 @@ export default function UrlForm({ onMetadataFetch, isLoading, existingUrls }: Ur
     setError(null);
 
     if (isManualMode) {
-      // Use manual input
       onMetadataFetch({
         url,
         title: manualTitle || 'No title',
@@ -37,6 +36,7 @@ export default function UrlForm({ onMetadataFetch, isLoading, existingUrls }: Ur
         image: '',
         timestamp: Date.now(),
       });
+      toast.success('Link generated successfully!');
     } else {
       try {
         const metadata = await scrapeMetadata(url);
@@ -45,8 +45,11 @@ export default function UrlForm({ onMetadataFetch, isLoading, existingUrls }: Ur
           url,
           timestamp: Date.now(),
         });
+        toast.success('Link generated successfully!');
       } catch (error) {
-        setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     }
   };
@@ -75,12 +78,15 @@ export default function UrlForm({ onMetadataFetch, isLoading, existingUrls }: Ur
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="Enter URL to redirect (e.g., https://example.com)"
-              className={`w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all ${
-                isLoading ? 'bg-gray-50' : ''
-              }`}
+              className={`w-full pl-10 pr-4 py-3 rounded-lg border ${
+                isLoading ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
+              } focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300`}
               required
               disabled={isLoading}
             />
+            {isLoading && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-100 to-transparent animate-shimmer opacity-50" />
+            )}
           </div>
 
           {isManualMode && (
@@ -90,9 +96,9 @@ export default function UrlForm({ onMetadataFetch, isLoading, existingUrls }: Ur
                 value={manualTitle}
                 onChange={(e) => setManualTitle(e.target.value)}
                 placeholder="Enter custom title"
-                className={`w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all ${
-                  isLoading ? 'bg-gray-50' : ''
-                }`}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  isLoading ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300`}
                 disabled={isLoading}
               />
               <textarea
@@ -100,9 +106,9 @@ export default function UrlForm({ onMetadataFetch, isLoading, existingUrls }: Ur
                 onChange={(e) => setManualDescription(e.target.value)}
                 placeholder="Enter custom description"
                 rows={3}
-                className={`w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all ${
-                  isLoading ? 'bg-gray-50' : ''
-                }`}
+                className={`w-full px-4 py-3 rounded-lg border ${
+                  isLoading ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
+                } focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-300`}
                 disabled={isLoading}
               />
             </>
@@ -111,19 +117,24 @@ export default function UrlForm({ onMetadataFetch, isLoading, existingUrls }: Ur
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full md:w-auto px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[160px] group"
+            className="relative w-full md:w-auto px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[160px] group overflow-hidden"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Generating...</span>
-              </>
-            ) : (
-              <>
-                <Link className="h-5 w-5 transition-transform group-hover:scale-110" />
-                <span>Generate Redirect</span>
-              </>
-            )}
+            <div className={`absolute inset-0 bg-gradient-to-r from-blue-400/50 via-blue-300/50 to-blue-400/50 ${
+              isLoading ? 'animate-shimmer' : 'opacity-0'
+            }`} />
+            <div className="relative flex items-center justify-center gap-2 w-full">
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="animate-pulse font-medium">Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Link className="h-5 w-5 transition-transform group-hover:scale-110 duration-300" />
+                  <span className="font-medium">Generate Redirect</span>
+                </>
+              )}
+            </div>
           </button>
         </div>
       </form>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Copy, ExternalLink, Image as ImageIcon, Edit2, Check, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import type { UrlMetadata } from '../types/types';
 
 interface UrlPreviewProps {
@@ -20,10 +21,11 @@ export default function UrlPreview({ metadata, onMetadataUpdate }: UrlPreviewPro
     setIsCopying(true);
     try {
       await navigator.clipboard.writeText(redirectUrl);
-      // Let the copying animation play for a moment
+      toast.success('Link copied to clipboard!');
       setTimeout(() => setIsCopying(false), 1000);
     } catch (err) {
       console.error('Failed to copy:', err);
+      toast.error('Failed to copy link');
       setIsCopying(false);
     }
   };
@@ -31,11 +33,13 @@ export default function UrlPreview({ metadata, onMetadataUpdate }: UrlPreviewPro
   const handleTitleSave = () => {
     onMetadataUpdate({ customTitle: tempTitle });
     setIsEditingTitle(false);
+    toast.success('Title updated successfully');
   };
 
   const handleDescriptionSave = () => {
     onMetadataUpdate({ customDescription: tempDescription });
     setIsEditingDescription(false);
+    toast.success('Description updated successfully');
   };
 
   return (
