@@ -45,7 +45,7 @@ export default function RedirectPage() {
         });
       });
 
-    const duration = 3000;
+    const duration = 30000;
     const interval = 10;
     const step = (interval / duration) * 100;
     let currentProgress = 0;
